@@ -18,6 +18,9 @@ RUN npm ci --workspace @qrforge/web --no-audit --no-fund
 COPY packages/core packages/core
 COPY packages/react packages/react
 COPY apps/web apps/web
+# Customise the repo link shown in the web UI for this fork at build time.
+ARG VITE_REPO_URL
+ENV VITE_REPO_URL=${VITE_REPO_URL}
 RUN npm run build --workspace @qrforge/web
 
 # --- API server ----------------------------------------------------------------

@@ -1,0 +1,48 @@
+# QRForge for Portainer on the internal Docker host (single-container SQLite).
+# Build THIS GitHub fork, not the upstream Docker image.
+# Docker host IP and host port can be changed via Portainer environment variables.
+# This is a LAN-only deployment; DO NOT expose it via router port forwarding.
+services:
+  qrforge:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        VITE_REPO_URL: "https://github.com/hoangthang0106/QrForge"
+    image: qrforge-hoangthang:lan
+    container_name: qrforge-lan
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+    ports:
+      - "${QRFORGE_LAN_IP:-192.168.20.194}:${QRFORGE_LAN_PORT:-18889}:8080"
+
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+      QRFORGE_BASE_URL: "http://${QRFORGE_LAN_IP:-192.168.20.194}:${QRFORGE_LAN_PORT:-18889}"
+      QRFORGE_DATABASE_URL: "sqlite:///data/qrforge.db"
+      QRFORGE_REGISTRATION: "closed"
+      QRFORGE_ADMIN_EMAIL: "${QRFORGE_ADMIN_EMAIL:?Set_QRFORGE_ADMIN_EMAIL_in_Portainer}"
+      QRFORGE_ADMIN_PASSWORD: "${QRFORGE_ADMIN_PASSWORD:?Set_QRFORGE_ADMIN_PASSWORD_in_Portainer}"
+      QRFORGE_FILE_UPLOADS: "disabled"
+
+    volumes:
+      - qrforge-data:/data
+
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 150
+
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  qrforge-data:
